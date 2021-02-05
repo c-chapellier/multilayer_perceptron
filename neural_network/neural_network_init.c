@@ -75,56 +75,50 @@ neural_network_t    *neural_network_init()
     return (nn);
 }
 
-static void neural_network_fill_from_backup(neural_network_t nn)
+static bool csv_to_array(const char *dataset_path, double **array, uint x, uint y)
 {
     dataframe_t *df;
-    char        *tmp = NULL, str[20];
 
-    if ((df = df_from_csv("./neural_network/backup/first_hidden_layer_weights.csv", NULL, false, nn.nbr_of_inputs)) == NULL)
-        return ;
-    df_print(*df);
-    copy_2d(nn.first_hidden_layer_weights, df->data, nn.nbr_of_neurons_per_hidden_layer, nn.nbr_of_inputs);
+    if ((df = df_from_csv(dataset_path,  NULL, false, y)) == NULL)
+        return (false);
+    // df_print(*df);
+    copy_2d(array, df->data, x, y);
     df_free(df);
+    return (true);
+}
 
-    // fill_randomly_3d(nn.hidden_layers_weights, nn.nbr_of_hidden_layers - 1, nn.nbr_of_neurons_per_hidden_layer, nn.nbr_of_neurons_per_hidden_layer);
+static bool csv_to_1d_array(const char *dataset_path, double *array, uint x)
+{
+    dataframe_t *df;
+
+    if ((df = df_from_csv(dataset_path,  NULL, false, x)) == NULL)
+        return (false);
+    // df_print(*df);
+    copy_1d(array, df->data[0], x);
+    df_free(df);
+    return (true);
+}
+
+static bool neural_network_fill_from_backup(neural_network_t nn)
+{
+    char    str[100];
+
+    if (csv_to_array("./neural_network/backup/first_hidden_layer_weights.csv", nn.first_hidden_layer_weights, nn.nbr_of_neurons_per_hidden_layer, nn.nbr_of_inputs) == false)
+        return (false);
     for (uint i = 0; i < nn.nbr_of_hidden_layers - 1; ++i)
     {
-        sprintf(str, "%d.csv", i);
-        if ((tmp = strjoin("./neural_network/backup/hidden_layers_weights.csv", str)) == NULL)
-            return ;
-        if ((df = df_from_csv(tmp, NULL, false, nn.nbr_of_neurons_per_hidden_layer)) == NULL)
-        {
-            free(tmp);
-            return ;
-        }
-        free(tmp);
-        df_print(*df);
-        copy_2d(nn.hidden_layers_weights[i], df->data, nn.nbr_of_neurons_per_hidden_layer, nn.nbr_of_neurons_per_hidden_layer);
-        df_free(df);
+        sprintf(str, "./neural_network/backup/hidden_layers_weights.csv_%d.csv", i);
+        if (csv_to_array(str, nn.hidden_layers_weights[i], nn.nbr_of_neurons_per_hidden_layer, nn.nbr_of_neurons_per_hidden_layer) == false)
+            return (false);
     }
-
-    if ((df = df_from_csv("./neural_network/backup/output_layer_weights.csv", NULL, false, nn.nbr_of_neurons_per_hidden_layer)) == NULL)
-        return ;
-    df_print(*df);
-    copy_2d(nn.output_layer_weights, df->data, nn.nbr_of_outputs, nn.nbr_of_neurons_per_hidden_layer);
-    df_free(df);
-    
-
-    if ((df = df_from_csv("./neural_network/backup/first_hidden_layer_biases.csv", NULL, false, nn.nbr_of_neurons_per_hidden_layer)) == NULL)
-        return ;
-    df_print(*df);
-    copy_1d(nn.first_hidden_layer_biases, df->data[0], nn.nbr_of_neurons_per_hidden_layer);
-    df_free(df);
-    if ((df = df_from_csv("./neural_network/backup/hidden_layers_biases.csv", NULL, false, nn.nbr_of_neurons_per_hidden_layer)) == NULL)
-        return ;
-    df_print(*df);
-    copy_2d(nn.hidden_layers_biases, df->data, nn.nbr_of_hidden_layers - 1, nn.nbr_of_neurons_per_hidden_layer);
-    df_free(df);
-    if ((df = df_from_csv("./neural_network/backup/output_layer_biases.csv", NULL, false, nn.nbr_of_outputs)) == NULL)
-        return ;
-    df_print(*df);
-    copy_1d(nn.output_layer_biases, df->data[0], nn.nbr_of_outputs);
-    df_free(df);
+    if (csv_to_array("./neural_network/backup/output_layer_weights.csv", nn.output_layer_weights, nn.nbr_of_outputs, nn.nbr_of_neurons_per_hidden_layer) == false)
+        return (false);
+    if (csv_to_1d_array("./neural_network/backup/first_hidden_layer_biases.csv", nn.first_hidden_layer_biases, nn.nbr_of_neurons_per_hidden_layer) == false)
+        return (false);
+    if (csv_to_array("./neural_network/backup/hidden_layers_biases.csv", nn.hidden_layers_biases, nn.nbr_of_hidden_layers - 1, nn.nbr_of_neurons_per_hidden_layer) == false)
+        return (false);
+    if (csv_to_1d_array("./neural_network/backup/output_layer_biases.csv", nn.output_layer_biases, nn.nbr_of_outputs) == false)
+        return (false);
 
     fill_of_zeros_2d(nn.first_hidden_layer_weights_delta, nn.nbr_of_neurons_per_hidden_layer, nn.nbr_of_inputs);
     fill_of_zeros_3d(nn.hidden_layers_weights_delta, nn.nbr_of_hidden_layers - 1, nn.nbr_of_neurons_per_hidden_layer, nn.nbr_of_neurons_per_hidden_layer);
@@ -136,6 +130,7 @@ static void neural_network_fill_from_backup(neural_network_t nn)
     
     fill_of_zeros_2d(nn.z, nn.nbr_of_hidden_layers + 1, nn.nbr_of_neurons_per_hidden_layer);
     fill_of_zeros_2d(nn.a, nn.nbr_of_hidden_layers + 1, nn.nbr_of_neurons_per_hidden_layer);
+    return (true);
 }
 
 neural_network_t    *neural_network_init_from_backup()
@@ -150,6 +145,7 @@ neural_network_t    *neural_network_init_from_backup()
     nn->nbr_of_outputs = NBR_OF_OUTPUTS;
     if (neural_network_alloc(nn) == false)
         return (NULL);
-    neural_network_fill_from_backup(*nn);
+    if (neural_network_fill_from_backup(*nn) == false)
+        return (NULL);
     return (nn);
 }

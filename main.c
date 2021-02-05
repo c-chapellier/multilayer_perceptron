@@ -15,6 +15,7 @@ int main(int argc, char *argv[])
         printf("usage: ./a.out [from_backup] [make_backup]\n");
         return (EXIT_FAILURE);
     }
+    // srand(time(NULL));
     return (follow(strcmp(argv[1], "from_backup") == 0, strcmp(argv[2], "make_backup") == 0));
 }
 
@@ -25,7 +26,6 @@ static int          follow(bool from_backup, bool make_backup)
     double              **labels, **labels_test;
     double              **features, **features_test;
 
-    // srand(time(NULL));
     if ((df = get_df("./data/training_data.csv")) == NULL)
         return (EXIT_FAILURE);
     if ((labels = get_labels(*df)) == NULL && free_all(df, NULL, NULL, NULL, NULL, NULL))
@@ -59,7 +59,12 @@ static int          follow(bool from_backup, bool make_backup)
     neural_network_test(*nn, features_test, labels_test, true);
     
     if (make_backup)
-        neural_network_save(*nn);
+    {
+        if (neural_network_save(*nn) == false)
+        {
+            printf("error: could not save model.\n");
+        }
+    }
 
     neural_network_free(nn, 14);
     free_all(df, labels, features, df_test, labels_test, features_test);

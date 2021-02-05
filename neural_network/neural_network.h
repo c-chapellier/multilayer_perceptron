@@ -80,7 +80,7 @@ void                neural_network_feedforward(neural_network_t nn, double *inpu
 void                neural_network_train(neural_network_t nn, double **features, double **labels, double **features_test, double **labels_test);
 void                neural_network_print(neural_network_t nn);
 double              neural_network_test(neural_network_t nn, double **features, double **labels, bool print_info);
-void                neural_network_save(neural_network_t nn);
+bool                neural_network_save(neural_network_t nn);
 bool                neural_network_free(neural_network_t *nn, int flag);
 
 /* -----------   array  ----------- */

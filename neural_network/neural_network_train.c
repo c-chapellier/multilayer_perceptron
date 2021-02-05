@@ -64,7 +64,6 @@ void    neural_network_backpropagation(neural_network_t nn, double *inputs, doub
         PRINTF("[0] b = %f\n", a_d * cost_d[i]);
         nn.output_layer_biases_delta[i] += a_d * cost_d[i];
     }
-
     for (uint i = 0; i < nn.nbr_of_neurons_per_hidden_layer; ++i)
     {
         double sum = 0.0;
@@ -78,7 +77,6 @@ void    neural_network_backpropagation(neural_network_t nn, double *inputs, doub
         PRINTF("[1] s = %f\n", sum);
         n_d[nn.nbr_of_hidden_layers - 1][i] = sum;
     }
-
     for (int h = nn.nbr_of_hidden_layers - 2; h >= 0; --h)
     {
         for (uint i = 0; i < nn.nbr_of_neurons_per_hidden_layer; ++i)
@@ -94,7 +92,6 @@ void    neural_network_backpropagation(neural_network_t nn, double *inputs, doub
             n_d[h][i] = sum;
         }
     }
-
     for (int i = nn.nbr_of_hidden_layers - 1; i >= 1; --i)
     {
         for (uint j = 0; j < nn.nbr_of_neurons_per_hidden_layer; ++j)
@@ -109,7 +106,6 @@ void    neural_network_backpropagation(neural_network_t nn, double *inputs, doub
             nn.hidden_layers_biases_delta[i - 1][j] += a_d * n_d[i][j];
         }
     }
-
     for (uint i = 0; i < nn.nbr_of_neurons_per_hidden_layer; ++i)
     {
         a_d = activation_function_derivative(nn.z[0][i]);
@@ -166,28 +162,19 @@ void    features_shuffle(double **features)
 void    write_cost(double cost[])
 {
     FILE    *fptr;
-    char    *content = NULL, *tmp = NULL, tmp_double[50];
+    char    content[NBR_OF_ITERATIONS * 10] = {0};
 
     for (uint i = 0; i < NBR_OF_ITERATIONS; ++i)
     {
-        sprintf(tmp_double, "%f\n", cost[i]);
-        if ((tmp = strjoin(content, tmp_double)) == NULL)
-        {
-            free(content);
-            printf("ERROR: df_write_to_csv: strjoin\n");
-            return ;
-        }
-        free(content);
-        content = tmp;
+        sprintf(content, "%s%f\n", content, cost[i]);
     }
-    if ((fptr = fopen("error.csv", "w")) == NULL)
+    if ((fptr = fopen("./neural_network/error/error.csv", "w")) == NULL)
     {
         printf("ERROR: write_cost: fopen\n");
         return ;
     }
     fprintf(fptr, "%s", content);
     fclose(fptr);
-    free(content);
 }
 
 void    neural_network_train(neural_network_t nn, double **features, double **labels, double **features_test, double **labels_test)

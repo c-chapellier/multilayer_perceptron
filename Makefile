@@ -7,6 +7,9 @@ LIBS =		dataframe/df.a neural_network/nn.a
 all :				df nn
 					gcc ${CFLAGS} ${SRCS} ${LIBS}
 
+plot :				
+					python3 ./neural_network/error/plot.py
+
 df :				
 					make -C dataframe/
 
@@ -34,5 +37,3 @@ fclean :			df_fclean nn_fclean clean
 					rm -f a.out
 
 re :				fclean all
-
-.PHONY:				all df nn clean fclean re

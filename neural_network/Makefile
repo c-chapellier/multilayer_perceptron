@@ -24,6 +24,7 @@ clean :
 			rm -f ${OBJS}
 
 fclean :	clean
-			rm -f ${NAME}
+			rm -f ${NAME} ./error/error.csv
+			rm -rf ./backup/*.csv
 
 re :		fclean all
